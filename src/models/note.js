@@ -4,17 +4,17 @@ const noteSchema = new mongoose.Schema(
     {
         content: {
             type: String,
-            requires:true
+            requires: true
         },
-        author:{
+        author: {
             type: String,
-            requires:true
+            requires: true
         }
-    },{
-        timestamp:true
-    }
+    }, {
+    timestamps: true
+}
 );
 
-const Note = mongoose.model('Note',noteSchema);
+const Note = mongoose.model('Note', noteSchema);
 
-module.exports =Note;
+module.exports = Note;
