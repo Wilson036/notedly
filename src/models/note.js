@@ -4,15 +4,16 @@ const noteSchema = new mongoose.Schema(
     {
         content: {
             type: String,
-            requires: true
+            requires: true,
         },
         author: {
-            type: String,
-            requires: true
-        }
-    }, {
-    timestamps: true
-}
+            type: mongoose.Schema.Types.ObjectId,
+            requires: true,
+        },
+    },
+    {
+        timestamps: true,
+    }
 );
 
 const Note = mongoose.model('Note', noteSchema);

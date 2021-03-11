@@ -2,8 +2,8 @@ const { gql } = require('apollo-server-express');
 
 const typeDefs = gql`
     scalar DateTime
-    
-    type Note{
+
+    type Note {
         id: ID!
         content: String!
         author: String!
@@ -11,25 +11,28 @@ const typeDefs = gql`
         updatedAt: DateTime!
     }
 
-    type User{
+    type User {
         id: ID!
         username: String!
         email: String!
         avatar: String!
-        notes:[Note!]!
+        notes: [Note!]!
     }
 
-    type Query{
-        notes:[Note!]!
-        note(id: ID!):Note!
+    type Query {
+        notes: [Note!]!
+        note(id: ID!): Note!
+        user(username: String!): User
+        users: [User!]!
+        me: User!
     }
 
-    type Mutation{ 
-        newNote(content:String! , author:String): Note!
-        updateNote(id:ID!,content:String!): Note!
-        deleteNote(id:ID):Boolean!
-        singUp(username:String!,email:String!,password:String!):String!
-        singIn(username:String,email:String,password:String):String!
+    type Mutation {
+        newNote(content: String!, author: String): Note!
+        updateNote(id: ID!, content: String!): Note!
+        deleteNote(id: ID): Boolean!
+        singUp(username: String!, email: String!, password: String!): String!
+        singIn(username: String, email: String, password: String): String!
     }
 `;
 

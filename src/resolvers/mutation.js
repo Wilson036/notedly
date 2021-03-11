@@ -1,39 +1,67 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { ForbiddenError, AuthenticationError } = require('apollo-server-express');
+const {
+    ForbiddenError,
+    AuthenticationError,
+} = require('apollo-server-express');
 require('dotenv').config();
 
 const gravatar = require('../util/gravatar');
 
+const mongoose = require('mongoose');
 
 module.exports = {
-    newNote: async (parent, args, { models }) => {
+    newNote: async (parent, args, { models, user }) => {
+        if (!user) {
+            throw new AuthenticationError('you should sign in to create notes');
+        }
         return await models.Note.create({
             content: args.content,
-            author: 'test'
+            author: mongoose.Types.ObjectId(user.id),
         });
     },
 
-    deleteNote: async (parent, { id }, { models }) => {
+    deleteNote: async (parent, { id }, { models, user }) => {
         try {
-            await models.Note.findOneAndRemove({ _id: id });
+            if (!user) {
+                throw new AuthenticationError(
+                    'you should sign in to create notes'
+                );
+            }
+            const note = await models.Note.findById({ _id: id });
+
+            if (note && String(note.author) !== user.id) {
+                throw new ForbiddenError('not have permission to delete Note');
+            }
+            await note.remove();
             return true;
         } catch (err) {
             console.error('error:', err);
             return false;
         }
     },
-    updateNote: async (parent, { id, content }, { models }) => {
-        return await models.Note.findOneAndUpdate({
-            _id: id
-        }, {
-            $set: { content }
-        }, {
-            new: true
-        });
+    updateNote: async (parent, { id, content }, { models, user }) => {
+        if (!user) {
+            throw new AuthenticationError('you should sign in to create notes');
+        }
+        const note = await models.Note.findById({ _id: id });
+
+        if (note && String(note.author) !== user.id) {
+            throw new ForbiddenError('not have permission to update Note');
+        }
+        return await models.Note.findOneAndUpdate(
+            {
+                _id: id,
+            },
+            {
+                $set: { content },
+            },
+            {
+                new: true,
+            }
+        );
     },
     singUp: async (parent, { username, email, password }, { models }) => {
-
         email = email.trim().toLowerCase();
 
         const hashed = await bcrypt.hash(password, 10);
@@ -43,8 +71,8 @@ module.exports = {
                 username,
                 email,
                 avatar,
-                password: hashed
-            })
+                password: hashed,
+            });
             return jwt.sign({ id: user._id }, process.env.JWT_SECRET);
         } catch (err) {
             console.err(err);
@@ -52,13 +80,12 @@ module.exports = {
         }
     },
     singIn: async (parent, { username, password, email }, { models }) => {
-
         if (email) {
             email = email.trim().toLowerCase();
         }
         const user = await models.User.findOne({
-            $or: [{ username }, { email }]
-        })
+            $or: [{ username }, { email }],
+        });
         if (!user) {
             throw new AuthenticationError('user not found');
         }
@@ -67,8 +94,5 @@ module.exports = {
             throw new AuthenticationError('password mismatch');
         }
         return jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-
-
-    }
-
-}
+    },
+};
