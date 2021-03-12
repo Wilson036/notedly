@@ -8,8 +8,19 @@ const noteSchema = new mongoose.Schema(
         },
         author: {
             type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
             requires: true,
         },
+        favoriteCount: {
+            type: Number,
+            default: 0,
+        },
+        favoritedBy: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+            },
+        ],
     },
     {
         timestamps: true,
