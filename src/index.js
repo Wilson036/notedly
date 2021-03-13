@@ -1,23 +1,53 @@
 // index.js
 // This is the main entry point of our application
-const {ApolloServer, gql} = require('apollo-server-express')
-const express  = require('express');
+const { ApolloServer } = require('apollo-server-express');
+const depthLimit = require('graphql-depth-limit');
+const { createComplexityLimitRule } = require('graphql-validation-complexity');
+const typeDefs = require('./schema');
+const resolvers = require('./resolvers');
+const jwt = require('jsonwebtoken');
+const express = require('express');
+require('dotenv').config();
+const db = require('./db');
+
+const models = require('./models');
+const helmet = require('helmet');
+const cors = require('cors');
+
+const DB_HOST = process.env.DB_HOST;
+const port = process.env.PORT || 4000;
+
 const app = express();
-const port = process.env.PORT ||4000 ; 
+db.connect(DB_HOST);
 
-const typeDefs = gql`
-    type Query{
-        hello: String
+const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    introspection: true,
+    playground: true,
+    validationRules: [depthLimit(5), createComplexityLimitRule(1000)],
+    context: ({ req }) => {
+        const token = req.headers.authorization;
+        const user = getUser(token);
+        console.log('user', user);
+        return { models, user };
+    },
+});
+server.applyMiddleware({ app, path: '/api' });
+
+app.use(helmet());
+app.use(cors());
+
+app.get('/', (req, res) => res.send('hello world33'));
+app.listen({ port }, () => console.log(`port is ${port}`));
+
+const getUser = token => {
+    if (token) {
+        try {
+            return jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            console.log('error', err);
+            throw new Error('session error');
+        }
     }
-`;
-
-const resolvers = {
-    Query:{
-        hello: () => 'hello world!'
-    }
-}
-
-const server = new ApolloServer({typeDefs , resolvers});
-server.applyMiddleware({app, path: '/api'});
-app.get('/', (req, res) =>res.send('hello world33'));
-app.listen({port} ,() => console.log(`port is ${port}`));
+};
