@@ -23,8 +23,6 @@ db.connect(DB_HOST);
 const server = new ApolloServer({
     typeDefs,
     resolvers,
-    introspection: true,
-    playground: true,
     validationRules: [depthLimit(5), createComplexityLimitRule(1000)],
     context: ({ req }) => {
         const token = req.headers.authorization;
