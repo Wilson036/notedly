@@ -61,7 +61,7 @@ module.exports = {
             }
         );
     },
-    singUp: async (parent, { username, email, password }, { models }) => {
+    signUp: async (parent, { username, email, password }, { models }) => {
         email = email.trim().toLowerCase();
 
         const hashed = await bcrypt.hash(password, 10);
@@ -79,7 +79,7 @@ module.exports = {
             throw new Error('singUp ERROR');
         }
     },
-    singIn: async (parent, { username, password, email }, { models }) => {
+    signIn: async (parent, { username, password, email }, { models }) => {
         if (email) {
             email = email.trim().toLowerCase();
         }
