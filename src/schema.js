@@ -24,6 +24,7 @@ const typeDefs = gql`
         username: String!
         email: String!
         avatar: String!
+        password: String
         notes: [Note!]!
         favorites: [Note!]
     }
@@ -41,8 +42,8 @@ const typeDefs = gql`
         newNote(content: String!, author: String): Note!
         updateNote(id: ID!, content: String!): Note!
         deleteNote(id: ID): Boolean!
-        singUp(username: String!, email: String!, password: String!): String!
-        singIn(username: String, email: String, password: String): String!
+        signUp(username: String!, email: String!, password: String!): String!
+        signIn(username: String, email: String, password: String): String!
         toggleFavorite(id: ID!): Note!
     }
 `;
